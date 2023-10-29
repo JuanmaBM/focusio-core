@@ -2,15 +2,16 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	management "github.com/juanmabm/focusio-core/management/http"
+	mng "github.com/juanmabm/focusio-core/management/http"
 )
 
 func SetupHttpServer() *gin.Engine {
 
 	r := gin.Default()
 
-	mh := management.NewHandler()
-	management.Routes(r, mh)
+	fah := mng.NewFocusAppHandler()
+	fch := mng.NewFocusCatalogItemHandler()
+	mng.Routes(r, fah, fch)
 
 	r.GET("/health", func(c *gin.Context) {
 		c.Status(200)
