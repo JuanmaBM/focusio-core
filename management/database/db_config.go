@@ -24,3 +24,8 @@ func createMongoConnection() (*mongo.Client, error) {
 	fmt.Println("Connected to MongoDB [mongodb://localhost:27017]")
 	return c, err
 }
+
+func GetCollection(client *mongo.Client, collectionName string) *mongo.Collection {
+	collection := client.Database("golangAPI").Collection(collectionName)
+	return collection
+}

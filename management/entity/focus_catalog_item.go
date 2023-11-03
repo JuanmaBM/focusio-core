@@ -1,4 +1,4 @@
-package domain
+package entity
 
 type FocusCatalogItem struct {
 	Name        string `json:"name" bson:"name,omitempty"`
