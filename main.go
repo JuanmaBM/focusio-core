@@ -14,6 +14,8 @@ func SetupHttpServer() *gin.Engine {
 		panic(err.Error())
 	}
 
+	database.CreateIndexes(mongoConnection)
+
 	far := focusapp.NewFocusAppRepository(mongoConnection)
 	focusapp.RegisterHandlers(r, far)
 

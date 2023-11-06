@@ -44,6 +44,11 @@ func (fh FocusAppHandler) create(c *gin.Context) {
 		return
 	}
 
+	if a, _ := fh.repository.findByName(app.Name); a.Name == app.Name {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "The application " + app.Name + " already exists"})
+		return
+	}
+
 	if bdErr := fh.repository.insert(app); bdErr != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": bdErr.Error()})
 		return

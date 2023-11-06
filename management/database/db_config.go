@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -25,7 +26,22 @@ func CreateMongoConnection() (*mongo.Client, error) {
 	return c, err
 }
 
-func GetCollection(client *mongo.Client, collectionName string) *mongo.Collection {
-	collection := client.Database("golangAPI").Collection(collectionName)
-	return collection
+func CreateIndexes(c *mongo.Client) {
+	database := c.Database("focusio")
+	createIndex(database, "FocusApp", "name")
+	createIndex(database, "FocusCatalogItem", "name")
+}
+
+func createIndex(database *mongo.Database, collection string, index string) {
+	_, err := database.Collection(collection).Indexes().CreateOne(
+		context.Background(),
+		mongo.IndexModel{
+			Keys:    bson.D{{Key: index, Value: 1}},
+			Options: options.Index().SetUnique(true),
+		},
+	)
+
+	if err != nil {
+		panic(err)
+	}
 }
