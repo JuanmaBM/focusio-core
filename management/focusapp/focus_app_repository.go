@@ -53,7 +53,7 @@ func (far focusAppRepository) findAll() []entity.FocusApp {
 		panic(err)
 	}
 
-	var fas []entity.FocusApp
+	var fas []entity.FocusApp = []entity.FocusApp{}
 	if err = cursor.All(context.TODO(), &fas); err != nil {
 		panic(err)
 	}
@@ -69,6 +69,6 @@ func (far focusAppRepository) delete(n string) error {
 
 func (far focusAppRepository) update(n string, fa *entity.FocusApp) error {
 	filter := bson.D{{"name", n}}
-	_, err := far.col.UpdateOne(context.TODO(), filter, fa)
+	_, err := far.col.ReplaceOne(context.TODO(), filter, fa)
 	return err
 }

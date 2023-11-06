@@ -25,10 +25,10 @@ func RegisterHandlers(ge *gin.Engine, r FocusAppRepository) {
 func (fh FocusAppHandler) findByName(c *gin.Context) {
 	name := c.Param("name")
 
-	if app, err := fh.repository.findByName(name); err != nil {
+	if app, err := fh.repository.findByName(name); err == nil {
 		c.JSON(http.StatusOK, app)
 	} else {
-		c.JSON(http.StatusNotFound, gin.H{"error": err})
+		c.AbortWithStatus(http.StatusNotFound)
 	}
 }
 
@@ -62,7 +62,7 @@ func (fh FocusAppHandler) update(c *gin.Context) {
 	}
 
 	if _, err := fh.repository.findByName(name); err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		c.AbortWithStatus(http.StatusNotFound)
 		return
 	}
 
