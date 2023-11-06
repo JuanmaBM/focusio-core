@@ -9,36 +9,42 @@ import (
 )
 
 type FocusAppRepository interface {
-	insert(fa *entity.FocusApp)
-	findByName(n string) entity.FocusApp
+	insert(fa entity.FocusApp) error
+	findByName(n string) (entity.FocusApp, error)
 	findAll() []entity.FocusApp
-	delete(n string)
-	update(n string, fa *entity.FocusApp)
+	delete(n string) error
+	update(n string, fa *entity.FocusApp) error
 }
 
 type focusAppRepository struct {
 	col *mongo.Collection
 }
 
-func NewFocusAppRepository(c *mongo.Client) focusAppRepository {
+func NewFocusAppRepository(c *mongo.Client) FocusAppRepository {
 	return focusAppRepository{
 		c.Database("focusio").Collection("FocusApp"),
 	}
 }
 
-func (far focusAppRepository) insert(fa *entity.FocusApp) {
-	far.col.InsertOne(context.TODO(), fa)
+func (far focusAppRepository) insert(fa entity.FocusApp) error {
+	_, err := far.col.InsertOne(context.TODO(), fa)
+	return err
 }
 
-func (far focusAppRepository) findByName(n string) entity.FocusApp {
+func (far focusAppRepository) findByName(n string) (entity.FocusApp, error) {
 	var fa entity.FocusApp
 	filter := bson.D{{"name", n}}
+
 	result := far.col.FindOne(context.TODO(), filter)
-	if result != nil {
-		result.Decode(&fa)
+	if result.Err() != nil {
+		return fa, result.Err()
 	}
 
-	return fa
+	if err := result.Decode(&fa); err != nil {
+		return fa, err
+	}
+
+	return fa, nil
 }
 
 func (far focusAppRepository) findAll() []entity.FocusApp {
@@ -55,12 +61,14 @@ func (far focusAppRepository) findAll() []entity.FocusApp {
 	return fas
 }
 
-func (far focusAppRepository) delete(n string) {
+func (far focusAppRepository) delete(n string) error {
 	filter := bson.D{{"name", n}}
-	far.col.DeleteOne(context.TODO(), filter)
+	_, err := far.col.DeleteOne(context.TODO(), filter)
+	return err
 }
 
-func (far focusAppRepository) update(n string, fa *entity.FocusApp) {
+func (far focusAppRepository) update(n string, fa *entity.FocusApp) error {
 	filter := bson.D{{"name", n}}
-	far.col.UpdateOne(context.TODO(), filter, fa)
+	_, err := far.col.UpdateOne(context.TODO(), filter, fa)
+	return err
 }
