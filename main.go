@@ -4,20 +4,22 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/juanmabm/focusio-core/management/database"
 	"github.com/juanmabm/focusio-core/management/focusapp"
+	"github.com/juanmabm/focusio-core/management/focuscatalog"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func SetupHttpServer() *gin.Engine {
+var hostname = "mongodb://localhost:27017"
+var dbName = "focusio"
+
+func SetupHttpServer(dbConnection *mongo.Database) *gin.Engine {
 
 	r := gin.Default()
-	mongoConnection, err := database.CreateMongoConnection()
-	if err != nil {
-		panic(err.Error())
-	}
 
-	database.CreateIndexes(mongoConnection)
-
-	far := focusapp.NewFocusAppRepository(mongoConnection)
+	far := focusapp.NewFocusAppRepository(dbConnection)
 	focusapp.RegisterHandlers(r, far)
+
+	fcr := focuscatalog.NewFocusCatalogItemRepository(dbConnection)
+	focuscatalog.RegisterHandlers(r, fcr)
 
 	r.GET("/health", func(c *gin.Context) {
 		c.Status(200)
@@ -26,7 +28,19 @@ func SetupHttpServer() *gin.Engine {
 	return r
 }
 
+func CreateDatabaseConnection() *mongo.Database {
+
+	dbConnection, err := database.CreateMongoConnection(hostname, dbName)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	database.CreateIndexes(dbConnection)
+	return dbConnection
+}
+
 func main() {
-	r := SetupHttpServer()
-	r.Run(":8080")
+	dbConnection := CreateDatabaseConnection()
+	httpServer := SetupHttpServer(dbConnection)
+	httpServer.Run(":8080")
 }

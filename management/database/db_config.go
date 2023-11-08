@@ -9,9 +9,9 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func CreateMongoConnection() (*mongo.Client, error) {
+func CreateMongoConnection(hostname string, database string) (*mongo.Database, error) {
 
-	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
+	clientOptions := options.Client().ApplyURI(hostname)
 	c, err := mongo.Connect(context.Background(), clientOptions)
 	if err != nil {
 		return nil, err
@@ -22,12 +22,20 @@ func CreateMongoConnection() (*mongo.Client, error) {
 		return nil, err
 	}
 
-	fmt.Println("Connected to MongoDB [mongodb://localhost:27017]")
-	return c, err
+	fmt.Println("Connected to MongoDB [%s]", hostname)
+
+	db := c.Database(database)
+	err = db.Client().Ping(context.Background(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println("Connect to dabase [%s]", database)
+
+	return db, err
 }
 
-func CreateIndexes(c *mongo.Client) {
-	database := c.Database("focusio")
+func CreateIndexes(database *mongo.Database) {
 	createIndex(database, "FocusApp", "name")
 	createIndex(database, "FocusCatalogItem", "name")
 }

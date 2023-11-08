@@ -20,9 +20,9 @@ type focusAppRepository struct {
 	col *mongo.Collection
 }
 
-func NewFocusAppRepository(c *mongo.Client) FocusAppRepository {
+func NewFocusAppRepository(db *mongo.Database) FocusAppRepository {
 	return focusAppRepository{
-		c.Database("focusio").Collection("FocusApp"),
+		db.Collection("FocusApp"),
 	}
 }
 
