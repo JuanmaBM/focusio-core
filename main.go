@@ -16,9 +16,8 @@ func SetupHttpServer(dbConnection *mongo.Database) *gin.Engine {
 	r := gin.Default()
 
 	far := focusapp.NewFocusAppRepository(dbConnection)
-	focusapp.RegisterHandlers(r, far)
-
 	fcr := focuscatalog.NewFocusCatalogItemRepository(dbConnection)
+	focusapp.RegisterHandlers(r, far, fcr)
 	focuscatalog.RegisterHandlers(r, fcr)
 
 	r.GET("/health", func(c *gin.Context) {

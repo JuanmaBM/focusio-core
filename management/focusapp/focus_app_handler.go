@@ -5,15 +5,17 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/juanmabm/focusio-core/management/entity"
+	"github.com/juanmabm/focusio-core/management/focuscatalog"
 )
 
 type FocusAppHandler struct {
-	repository FocusAppRepository
+	repository        FocusAppRepository
+	catalogRepository focuscatalog.FocusCatalogItemRepository
 }
 
-func RegisterHandlers(ge *gin.Engine, r FocusAppRepository) {
+func RegisterHandlers(ge *gin.Engine, r FocusAppRepository, fcr focuscatalog.FocusCatalogItemRepository) {
 
-	handler := FocusAppHandler{r}
+	handler := FocusAppHandler{r, fcr}
 
 	ge.GET("/app", handler.findAll)
 	ge.POST("/app", handler.create)
@@ -46,6 +48,11 @@ func (fh FocusAppHandler) create(c *gin.Context) {
 
 	if a, _ := fh.repository.findByName(app.Name); a.Name == app.Name {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "The application " + app.Name + " already exists"})
+		return
+	}
+
+	if catalog, _ := fh.catalogRepository.findByName(app.FocusCatalogItem); catalog == nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "The CatalogItem " + app.Name + " doesn't exists"})
 		return
 	}
 
