@@ -51,8 +51,8 @@ func (fh FocusAppHandler) create(c *gin.Context) {
 		return
 	}
 
-	if catalog, _ := fh.catalogRepository.findByName(app.FocusCatalogItem); catalog == nil {
-		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "The CatalogItem " + app.Name + " doesn't exists"})
+	if _, err := fh.catalogRepository.FindByName(app.FocusCatalogItem); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "The CatalogItem " + app.FocusCatalogItem + " doesn't exists"})
 		return
 	}
 
