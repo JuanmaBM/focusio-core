@@ -1,15 +1,14 @@
 package main
 
 import (
+	"os"
+
 	"github.com/gin-gonic/gin"
 	"github.com/juanmabm/focusio-core/management/database"
 	"github.com/juanmabm/focusio-core/management/focusapp"
 	"github.com/juanmabm/focusio-core/management/focuscatalog"
 	"go.mongodb.org/mongo-driver/mongo"
 )
-
-var hostname = "mongodb://localhost:27017"
-var dbName = "focusio"
 
 func SetupHttpServer(dbConnection *mongo.Database) *gin.Engine {
 
@@ -29,7 +28,12 @@ func SetupHttpServer(dbConnection *mongo.Database) *gin.Engine {
 
 func CreateDatabaseConnection() *mongo.Database {
 
-	dbConnection, err := database.CreateMongoConnection(hostname, dbName)
+	var hostname = os.Getenv("MONGO_HOSTNAME")
+	var username = os.Getenv("MONGO_USERNAME")
+	var password = os.Getenv("MONGO_PASSWORD")
+	var dbName = "focusio"
+
+	dbConnection, err := database.CreateMongoConnection(hostname, username, password, dbName)
 	if err != nil {
 		panic(err.Error())
 	}

@@ -9,9 +9,14 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func CreateMongoConnection(hostname string, database string) (*mongo.Database, error) {
+func CreateMongoConnection(hostname string, username string, password string, database string) (*mongo.Database, error) {
 
-	clientOptions := options.Client().ApplyURI(hostname)
+	credential := options.Credential{
+		AuthMechanism: "SCRAM-SHA-256",
+		Username:      username,
+		Password:      password,
+	}
+	clientOptions := options.Client().ApplyURI(hostname).SetAuth(credential)
 	c, err := mongo.Connect(context.Background(), clientOptions)
 	if err != nil {
 		return nil, err
