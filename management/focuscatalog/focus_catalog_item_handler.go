@@ -25,7 +25,7 @@ func RegisterHandlers(ge *gin.Engine, r FocusCatalogItemRepository) {
 func (fh FocusCatalogItemHandler) findByName(c *gin.Context) {
 	name := c.Param("name")
 
-	if app, err := fh.repository.findByName(name); err == nil {
+	if app, err := fh.repository.FindByName(name); err == nil {
 		c.JSON(http.StatusOK, app)
 	} else {
 		c.AbortWithStatus(http.StatusNotFound)
@@ -33,7 +33,7 @@ func (fh FocusCatalogItemHandler) findByName(c *gin.Context) {
 }
 
 func (fh FocusCatalogItemHandler) findAll(c *gin.Context) {
-	c.JSON(200, fh.repository.findAll())
+	c.JSON(200, fh.repository.FindAll())
 }
 
 func (fh FocusCatalogItemHandler) create(c *gin.Context) {
@@ -44,12 +44,12 @@ func (fh FocusCatalogItemHandler) create(c *gin.Context) {
 		return
 	}
 
-	if a, _ := fh.repository.findByName(item.Name); a.Name == item.Name {
+	if a, _ := fh.repository.FindByName(item.Name); a.Name == item.Name {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "The application " + item.Name + " already exists"})
 		return
 	}
 
-	if bdErr := fh.repository.insert(item); bdErr != nil {
+	if bdErr := fh.repository.Insert(item); bdErr != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": bdErr.Error()})
 		return
 	}
@@ -66,12 +66,12 @@ func (fh FocusCatalogItemHandler) update(c *gin.Context) {
 		return
 	}
 
-	if _, err := fh.repository.findByName(name); err != nil {
+	if _, err := fh.repository.FindByName(name); err != nil {
 		c.AbortWithStatus(http.StatusNotFound)
 		return
 	}
 
-	if err := fh.repository.update(name, item); err != nil {
+	if err := fh.repository.Update(name, item); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -81,6 +81,6 @@ func (fh FocusCatalogItemHandler) update(c *gin.Context) {
 
 func (fh FocusCatalogItemHandler) delete(c *gin.Context) {
 	name := c.Param("name")
-	fh.repository.delete(name)
+	fh.repository.Delete(name)
 	c.JSON(http.StatusOK, nil)
 }
