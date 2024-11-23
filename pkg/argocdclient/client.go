@@ -10,8 +10,11 @@ import (
 	"github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
 )
 
+const OPEN_CONNECTION_FAILED_MESSAGE string = "Failed to open a connection to ArgoCD server: %v"
+
 type ArgoCDClient struct {
 	client apiclient.Client
+	ctx    context.Context
 }
 
 func NewArgoCDClient(serverAddr, authToken string, insecure bool, caCertPath string) (*ArgoCDClient, error) {
@@ -30,7 +33,10 @@ func NewArgoCDClient(serverAddr, authToken string, insecure bool, caCertPath str
 		return nil, err
 	}
 
-	return &ArgoCDClient{client: client}, nil
+	return &ArgoCDClient{
+		client: client,
+		ctx:    context.Background(),
+	}, nil
 }
 
 func (c *ArgoCDClient) ListApplications() (*v1alpha1.ApplicationList, error) {
@@ -42,8 +48,7 @@ func (c *ArgoCDClient) ListApplications() (*v1alpha1.ApplicationList, error) {
 	}
 	defer conn.Close()
 
-	ctx := context.Background()
-	apps, err := appClient.List(ctx, &application.ApplicationQuery{})
+	apps, err := appClient.List(c.ctx, &application.ApplicationQuery{})
 	if err != nil {
 		log.Printf("Failed to get all applications: %v", err)
 		return nil, err
@@ -52,7 +57,7 @@ func (c *ArgoCDClient) ListApplications() (*v1alpha1.ApplicationList, error) {
 	return apps, nil
 }
 
-func (c *ArgoCDClient) createApplication(application *application.ApplicationCreateRequest) (*v1alpha1.Application, error) {
+func (c *ArgoCDClient) CreateApplication(application *application.ApplicationCreateRequest) (*v1alpha1.Application, error) {
 
 	if application == nil {
 		return nil, errors.New("application must be defined")
@@ -65,11 +70,35 @@ func (c *ArgoCDClient) createApplication(application *application.ApplicationCre
 	}
 	defer conn.Close()
 
-	ctx := context.Background()
-	applicationCreated, err := appClient.Create(ctx, application)
+	applicationCreated, err := appClient.Create(c.ctx, application)
 	if err != nil {
 		log.Fatalf("Application can not be created: %v", err)
 		return nil, err
 	}
 	return applicationCreated, nil
+}
+
+func (c *ArgoCDClient) GetApplication(query application.ApplicationQuery) (*v1alpha1.Application, error) {
+
+	if isEmpty(query) {
+		return nil, errors.New("Application name parameter must be defined")
+	}
+
+	conn, appClient, err := c.client.NewApplicationClient()
+	if err != nil {
+		log.Fatalf(OPEN_CONNECTION_FAILED_MESSAGE, err)
+		return nil, err
+	}
+	defer conn.Close()
+
+	application, err := appClient.Get(c.ctx, &query)
+	if err != nil {
+		log.Fatalf("Application not found with query: %v", query)
+		return nil, err
+	}
+	return application, nil
+}
+
+func isEmpty(query application.ApplicationQuery) bool {
+	return query.Name == nil
 }
