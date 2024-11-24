@@ -9,6 +9,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 	"sync"
 
 	"github.com/argoproj/argo-cd/v2/pkg/apiclient"
@@ -196,9 +197,29 @@ func (c *ArgoCDClient) GetApplication(query application.ApplicationQuery) (*v1al
 }
 
 func isEmpty(query application.ApplicationQuery) bool {
-	return query.Name == nil
+	fields := []interface{}{
+		query.Name,
+		query.AppNamespace,
+		query.Refresh,
+		query.Repo,
+		query.ResourceVersion,
+		query.Selector,
+		query.Project,
+		query.Projects,
+	}
+
+	for _, field := range fields {
+		if field != nil {
+			return true
+		}
+	}
+
+	return false
 }
 
 func isUnauthorized(err error) bool {
-	return true
+	if err != nil && strings.Contains(err.Error(), "401") {
+		return true
+	}
+	return false
 }
