@@ -9,11 +9,11 @@ import (
 )
 
 type FocusAppRepository interface {
-	insert(fa entity.FocusApp) error
-	findByName(n string) (entity.FocusApp, error)
-	findAll() []entity.FocusApp
-	delete(n string) error
-	update(n string, fa *entity.FocusApp) error
+	Insert(fa entity.FocusApp) error
+	FindByName(n string) (entity.FocusApp, error)
+	FindAll() []entity.FocusApp
+	Delete(n string) error
+	Update(n string, fa *entity.FocusApp) error
 }
 
 type focusAppRepository struct {
@@ -26,12 +26,12 @@ func NewFocusAppRepository(db *mongo.Database) FocusAppRepository {
 	}
 }
 
-func (far focusAppRepository) insert(fa entity.FocusApp) error {
+func (far focusAppRepository) Insert(fa entity.FocusApp) error {
 	_, err := far.col.InsertOne(context.TODO(), fa)
 	return err
 }
 
-func (far focusAppRepository) findByName(n string) (entity.FocusApp, error) {
+func (far focusAppRepository) FindByName(n string) (entity.FocusApp, error) {
 	var fa entity.FocusApp
 	filter := bson.D{{"name", n}}
 
@@ -47,7 +47,7 @@ func (far focusAppRepository) findByName(n string) (entity.FocusApp, error) {
 	return fa, nil
 }
 
-func (far focusAppRepository) findAll() []entity.FocusApp {
+func (far focusAppRepository) FindAll() []entity.FocusApp {
 	cursor, err := far.col.Find(context.TODO(), bson.D{})
 	if err != nil {
 		panic(err)
@@ -61,13 +61,13 @@ func (far focusAppRepository) findAll() []entity.FocusApp {
 	return fas
 }
 
-func (far focusAppRepository) delete(n string) error {
+func (far focusAppRepository) Delete(n string) error {
 	filter := bson.D{{"name", n}}
 	_, err := far.col.DeleteOne(context.TODO(), filter)
 	return err
 }
 
-func (far focusAppRepository) update(n string, fa *entity.FocusApp) error {
+func (far focusAppRepository) Update(n string, fa *entity.FocusApp) error {
 	filter := bson.D{{"name", n}}
 	_, err := far.col.ReplaceOne(context.TODO(), filter, fa)
 	return err

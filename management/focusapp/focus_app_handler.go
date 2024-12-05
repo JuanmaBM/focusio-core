@@ -27,7 +27,7 @@ func RegisterHandlers(ge *gin.Engine, r FocusAppRepository, fcr focuscatalog.Foc
 func (fh FocusAppHandler) findByName(c *gin.Context) {
 	name := c.Param("name")
 
-	if app, err := fh.repository.findByName(name); err == nil {
+	if app, err := fh.repository.FindByName(name); err == nil {
 		c.JSON(http.StatusOK, app)
 	} else {
 		c.AbortWithStatus(http.StatusNotFound)
@@ -35,7 +35,7 @@ func (fh FocusAppHandler) findByName(c *gin.Context) {
 }
 
 func (fh FocusAppHandler) findAll(c *gin.Context) {
-	c.JSON(200, fh.repository.findAll())
+	c.JSON(200, fh.repository.FindAll())
 }
 
 func (fh FocusAppHandler) create(c *gin.Context) {
@@ -46,7 +46,7 @@ func (fh FocusAppHandler) create(c *gin.Context) {
 		return
 	}
 
-	if a, _ := fh.repository.findByName(app.Name); a.Name == app.Name {
+	if a, _ := fh.repository.FindByName(app.Name); a.Name == app.Name {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "The application " + app.Name + " already exists"})
 		return
 	}
@@ -56,7 +56,7 @@ func (fh FocusAppHandler) create(c *gin.Context) {
 		return
 	}
 
-	if bdErr := fh.repository.insert(app); bdErr != nil {
+	if bdErr := fh.repository.Insert(app); bdErr != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": bdErr.Error()})
 		return
 	}
@@ -73,12 +73,12 @@ func (fh FocusAppHandler) update(c *gin.Context) {
 		return
 	}
 
-	if _, err := fh.repository.findByName(name); err != nil {
+	if _, err := fh.repository.FindByName(name); err != nil {
 		c.AbortWithStatus(http.StatusNotFound)
 		return
 	}
 
-	if err := fh.repository.update(name, &app); err != nil {
+	if err := fh.repository.Update(name, &app); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -88,6 +88,6 @@ func (fh FocusAppHandler) update(c *gin.Context) {
 
 func (fh FocusAppHandler) delete(c *gin.Context) {
 	name := c.Param("name")
-	fh.repository.delete(name)
+	fh.repository.Delete(name)
 	c.JSON(http.StatusOK, nil)
 }
