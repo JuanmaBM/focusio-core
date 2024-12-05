@@ -33,7 +33,7 @@ func (far focusAppRepository) Insert(fa entity.FocusApp) error {
 
 func (far focusAppRepository) FindByName(n string) (entity.FocusApp, error) {
 	var fa entity.FocusApp
-	filter := bson.D{{"name", n}}
+	filter := bson.D{{Key: "name", Value: n}}
 
 	result := far.col.FindOne(context.TODO(), filter)
 	if result.Err() != nil {
@@ -62,13 +62,13 @@ func (far focusAppRepository) FindAll() []entity.FocusApp {
 }
 
 func (far focusAppRepository) Delete(n string) error {
-	filter := bson.D{{"name", n}}
+	filter := bson.D{{Key: "name", Value: n}}
 	_, err := far.col.DeleteOne(context.TODO(), filter)
 	return err
 }
 
 func (far focusAppRepository) Update(n string, fa *entity.FocusApp) error {
-	filter := bson.D{{"name", n}}
+	filter := bson.D{{Key: "name", Value: n}}
 	_, err := far.col.ReplaceOne(context.TODO(), filter, fa)
 	return err
 }

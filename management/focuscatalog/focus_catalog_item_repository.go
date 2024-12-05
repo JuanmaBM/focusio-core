@@ -42,7 +42,7 @@ func (r focusCatalogItemRepository) FindAll() []entity.FocusCatalogItem {
 
 func (r focusCatalogItemRepository) FindByName(name string) (entity.FocusCatalogItem, error) {
 	var item entity.FocusCatalogItem
-	filterByName := bson.D{{"name", name}}
+	filterByName := bson.D{{Key: "name", Value: name}}
 
 	result := r.col.FindOne(context.Background(), filterByName)
 	if result.Err() != nil {
@@ -62,13 +62,13 @@ func (r focusCatalogItemRepository) Insert(item entity.FocusCatalogItem) error {
 }
 
 func (r focusCatalogItemRepository) Update(name string, item entity.FocusCatalogItem) error {
-	filter := bson.D{{"name", name}}
+	filter := bson.D{{Key: "name", Value: name}}
 	_, err := r.col.ReplaceOne(context.Background(), filter, item)
 	return err
 }
 
 func (r focusCatalogItemRepository) Delete(name string) error {
-	filter := bson.D{{"name", name}}
+	filter := bson.D{{Key: "name", Value: name}}
 	_, err := r.col.DeleteOne(context.Background(), filter)
 	return err
 }
