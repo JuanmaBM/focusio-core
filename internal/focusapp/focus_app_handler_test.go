@@ -9,8 +9,8 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/juanmabm/focusio-core/management/entity"
-	"github.com/juanmabm/focusio-core/management/mocks"
+	"github.com/juanmabm/focusio-core/internal/entity"
+	"github.com/juanmabm/focusio-core/internal/mocks"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )

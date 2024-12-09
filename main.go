@@ -4,9 +4,9 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
-	"github.com/juanmabm/focusio-core/management/database"
-	"github.com/juanmabm/focusio-core/management/focusapp"
-	"github.com/juanmabm/focusio-core/management/focuscatalog"
+	"github.com/juanmabm/focusio-core/internal/database"
+	"github.com/juanmabm/focusio-core/internal/focusapp"
+	"github.com/juanmabm/focusio-core/internal/focuscatalog"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 

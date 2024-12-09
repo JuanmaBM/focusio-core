@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/juanmabm/focusio-core/management/entity"
-	"github.com/juanmabm/focusio-core/management/focuscatalog"
+	"github.com/juanmabm/focusio-core/internal/entity"
+	"github.com/juanmabm/focusio-core/internal/focuscatalog"
 )
 
 type FocusAppHandler struct {

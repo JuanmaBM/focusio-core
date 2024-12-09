@@ -12,7 +12,7 @@ package mocks
 import (
 	reflect "reflect"
 
-	entity "github.com/juanmabm/focusio-core/management/entity"
+	entity "github.com/juanmabm/focusio-core/internal/entity"
 	gomock "go.uber.org/mock/gomock"
 )
 

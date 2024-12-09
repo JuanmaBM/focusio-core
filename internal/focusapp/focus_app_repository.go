@@ -3,7 +3,7 @@ package focusapp
 import (
 	"context"
 
-	"github.com/juanmabm/focusio-core/management/entity"
+	"github.com/juanmabm/focusio-core/internal/entity"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
