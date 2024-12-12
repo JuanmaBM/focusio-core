@@ -3,6 +3,7 @@ package argocdclient
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -24,7 +25,6 @@ type ArgoCDClient struct {
 	username   string
 	password   string
 	serverAddr string
-	authToken  string
 	insecure   bool
 }
 
@@ -49,7 +49,12 @@ func getAuthToken(serverAddr string, username string, password string) (string, 
 		return "", err
 	}
 
-	resp, err := http.Post(loginURL, "application/json", bytes.NewBuffer(reqBody))
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: tr}
+
+	resp, err := client.Post(loginURL, "application/json", bytes.NewBuffer(reqBody))
 	if err != nil {
 		return "", err
 	}
@@ -85,15 +90,16 @@ func createArgcdClient(serverAddr string, authToken string, insecure bool) (apic
 	return client, nil
 }
 
-func NewArgoCDClient(serverAddr string, username string, password string, insecure bool, caCertPath string) (*ArgoCDClient, error) {
+func NewArgoCDClient(serverAddr string, port string, username string, password string, insecure bool) (*ArgoCDClient, error) {
 
-	authToken, err := getAuthToken(serverAddr, username, password)
+	authToken, err := getAuthToken("https://"+serverAddr, username, password)
 	if err != nil {
+		log.Fatalf(err.Error())
 		log.Fatalf("Client can't get Authorization Token from ArgoCD with the crendetials provided")
 		return nil, err
 	}
 
-	client, err := createArgcdClient(serverAddr, authToken, insecure)
+	client, err := createArgcdClient(serverAddr+":"+port, authToken, insecure)
 	if err != nil {
 		log.Fatalf("Failed to create ArgoCD client: %v", err)
 		return nil, err
@@ -105,7 +111,6 @@ func NewArgoCDClient(serverAddr string, username string, password string, insecu
 		username:   username,
 		password:   password,
 		serverAddr: serverAddr,
-		authToken:  authToken,
 		insecure:   insecure,
 	}, nil
 }
@@ -130,7 +135,6 @@ func (c *ArgoCDClient) DoRequestWithRetry(requestFunc func(appClient application
 			return fmt.Errorf("error renewing auth token: %v", err)
 		}
 
-		c.authToken = authToken
 		c.client, err = createArgcdClient(c.serverAddr, authToken, c.insecure)
 		if err != nil {
 			return fmt.Errorf("error recreating ArgoCD client with new token: %v", err)
