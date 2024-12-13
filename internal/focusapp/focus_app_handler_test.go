@@ -11,19 +11,21 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/juanmabm/focusio-core/internal/entity"
 	"github.com/juanmabm/focusio-core/internal/mocks"
+	"github.com/juanmabm/focusio-core/pkg/argocdclient"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
 
-func setup(t *testing.T) (*gomock.Controller, *mocks.MockFocusAppRepository, *mocks.MockFocusCatalogItemRepository, *gin.Engine) {
+func setup(t *testing.T) (*gomock.Controller, *mocks.MockFocusAppRepository, *mocks.MockFocusCatalogItemRepository, *argocdclient.MockArgoCDClient, *gin.Engine) {
 
 	ctrl := gomock.NewController(t)
 	fr := mocks.NewMockFocusAppRepository(ctrl)
 	cr := mocks.NewMockFocusCatalogItemRepository(ctrl)
+	ac := argocdclient.NewMockArgoCDClient(ctrl)
 	r := gin.Default()
-	RegisterHandlers(r, fr, cr)
+	RegisterHandlers(r, fr, cr, ac)
 
-	return ctrl, fr, cr, r
+	return ctrl, fr, cr, ac, r
 }
 
 func performTestRequest(r *gin.Engine, method string, url string, body any) *httptest.ResponseRecorder {
@@ -42,7 +44,7 @@ func performTestRequest(r *gin.Engine, method string, url string, body any) *htt
 
 func TestFindByName_Success(t *testing.T) {
 
-	ctrl, fr, _, r := setup(t)
+	ctrl, fr, _, _, r := setup(t)
 	defer ctrl.Finish()
 
 	fr.EXPECT().FindByName("App1").Return(entity.FocusApp{Name: "App1"}, nil)
@@ -54,7 +56,7 @@ func TestFindByName_Success(t *testing.T) {
 
 func TestFindByNameUnSuccess(t *testing.T) {
 
-	ctrl, fr, _, r := setup(t)
+	ctrl, fr, _, _, r := setup(t)
 	defer ctrl.Finish()
 
 	fr.EXPECT().FindByName("App1").Return(entity.FocusApp{}, errors.New(""))
@@ -65,7 +67,7 @@ func TestFindByNameUnSuccess(t *testing.T) {
 
 func TestFindAllShouldReturnAllItems(t *testing.T) {
 
-	ctrl, fr, _, r := setup(t)
+	ctrl, fr, _, _, r := setup(t)
 	defer ctrl.Finish()
 
 	expectedApps := []entity.FocusApp{
@@ -85,7 +87,7 @@ func TestFindAllShouldReturnAllItems(t *testing.T) {
 
 func TestDeleteAppShoulInvokeDeleteOne(t *testing.T) {
 
-	ctrl, fr, _, r := setup(t)
+	ctrl, fr, _, _, r := setup(t)
 	defer ctrl.Finish()
 
 	fr.EXPECT().Delete("app1").Times(1)
@@ -95,7 +97,7 @@ func TestDeleteAppShoulInvokeDeleteOne(t *testing.T) {
 
 func TestUpdateShouldInvokeUpdateRepositoryMethod(t *testing.T) {
 
-	ctrl, fr, _, r := setup(t)
+	ctrl, fr, _, _, r := setup(t)
 	defer ctrl.Finish()
 
 	app := entity.FocusApp{Name: "app1"}
@@ -107,7 +109,7 @@ func TestUpdateShouldInvokeUpdateRepositoryMethod(t *testing.T) {
 
 func TestUpdateShouldReturnNotFoundWhenAppNotExists(t *testing.T) {
 
-	ctrl, fr, _, r := setup(t)
+	ctrl, fr, _, _, r := setup(t)
 	defer ctrl.Finish()
 
 	app := entity.FocusApp{Name: "app1"}
@@ -118,7 +120,7 @@ func TestUpdateShouldReturnNotFoundWhenAppNotExists(t *testing.T) {
 
 func TestCreateAlreadyAppShouldReturnUnprocesable(t *testing.T) {
 
-	ctrl, fr, _, r := setup(t)
+	ctrl, fr, _, _, r := setup(t)
 	defer ctrl.Finish()
 
 	app := entity.FocusApp{Name: "app1"}
@@ -131,7 +133,7 @@ func TestCreateAlreadyAppShouldReturnUnprocesable(t *testing.T) {
 
 func TestCreateWithCatalogNotExistsShouldReturnUnprocessable(t *testing.T) {
 
-	ctrl, fr, cr, r := setup(t)
+	ctrl, fr, cr, _, r := setup(t)
 	defer ctrl.Finish()
 
 	app := entity.FocusApp{Name: "app1", FocusCatalogItem: "quarkus-api"}
@@ -145,7 +147,7 @@ func TestCreateWithCatalogNotExistsShouldReturnUnprocessable(t *testing.T) {
 
 func TestInsertErrorShoultReturnInternalServerError(t *testing.T) {
 
-	ctrl, fr, cr, r := setup(t)
+	ctrl, fr, cr, _, r := setup(t)
 	defer ctrl.Finish()
 
 	app := entity.FocusApp{Name: "app1", FocusCatalogItem: "quarkus-api"}
@@ -160,7 +162,7 @@ func TestInsertErrorShoultReturnInternalServerError(t *testing.T) {
 
 func TestCreateAppShouldReturnAppCreated(t *testing.T) {
 
-	ctrl, fr, cr, r := setup(t)
+	ctrl, fr, cr, _, r := setup(t)
 	defer ctrl.Finish()
 
 	app := entity.FocusApp{Name: "app1", FocusCatalogItem: "quarkus-api"}

@@ -38,7 +38,7 @@ func createDatabaseConnection() *mongo.Database {
 	return dbConnection
 }
 
-func createArgocdConnection() *argocdclient.ArgoCDClient {
+func createArgocdConnection() argocdclient.ArgoCDClient {
 
 	var serverAddr = os.Getenv("ARGOCD_SERVER_ADDR")
 	var port = os.Getenv("ARGOCD_SERVER_PORT")
@@ -61,7 +61,8 @@ func main() {
 
 	far := focusapp.NewFocusAppRepository(dbConnection)
 	fcr := focuscatalog.NewFocusCatalogItemRepository(dbConnection)
-	focusapp.RegisterHandlers(r, far, fcr)
+	ac := createArgocdConnection()
+	focusapp.RegisterHandlers(r, far, fcr, ac)
 	focuscatalog.RegisterHandlers(r, fcr)
 
 	r.Run(":8080")

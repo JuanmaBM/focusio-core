@@ -6,16 +6,18 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/juanmabm/focusio-core/internal/entity"
 	"github.com/juanmabm/focusio-core/internal/focuscatalog"
+	"github.com/juanmabm/focusio-core/pkg/argocdclient"
 )
 
 type FocusAppHandler struct {
 	repository        FocusAppRepository
 	catalogRepository focuscatalog.FocusCatalogItemRepository
+	argoClient        argocdclient.ArgoCDClient
 }
 
-func RegisterHandlers(ge *gin.Engine, r FocusAppRepository, fcr focuscatalog.FocusCatalogItemRepository) {
+func RegisterHandlers(ge *gin.Engine, r FocusAppRepository, fcr focuscatalog.FocusCatalogItemRepository, ac argocdclient.ArgoCDClient) {
 
-	handler := FocusAppHandler{r, fcr}
+	handler := FocusAppHandler{r, fcr, ac}
 
 	ge.GET("/app", handler.findAll)
 	ge.POST("/app", handler.create)
