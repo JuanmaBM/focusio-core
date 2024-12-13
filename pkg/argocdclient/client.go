@@ -18,7 +18,14 @@ import (
 	"github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
 )
 
-type ArgoCDClient struct {
+type ArgoCDClient interface {
+	DoRequestWithRetry(requestFunc func(appClient application.ApplicationServiceClient) error) error
+	ListApplications() (*v1alpha1.ApplicationList, error)
+	CreateApplication(newApp *application.ApplicationCreateRequest) (*v1alpha1.Application, error)
+	GetApplication(query application.ApplicationQuery) (*v1alpha1.Application, error)
+}
+
+type argoCDClient struct {
 	client     apiclient.Client
 	ctx        context.Context
 	tokenLock  sync.Mutex
@@ -90,11 +97,10 @@ func createArgcdClient(serverAddr string, authToken string, insecure bool) (apic
 	return client, nil
 }
 
-func NewArgoCDClient(serverAddr string, port string, username string, password string, insecure bool) (*ArgoCDClient, error) {
+func NewArgoCDClient(serverAddr string, port string, username string, password string, insecure bool) (ArgoCDClient, error) {
 
 	authToken, err := getAuthToken("https://"+serverAddr, username, password)
 	if err != nil {
-		log.Fatalf(err.Error())
 		log.Fatalf("Client can't get Authorization Token from ArgoCD with the crendetials provided")
 		return nil, err
 	}
@@ -105,7 +111,7 @@ func NewArgoCDClient(serverAddr string, port string, username string, password s
 		return nil, err
 	}
 
-	return &ArgoCDClient{
+	return &argoCDClient{
 		client:     client,
 		ctx:        context.Background(),
 		username:   username,
@@ -115,7 +121,7 @@ func NewArgoCDClient(serverAddr string, port string, username string, password s
 	}, nil
 }
 
-func (c *ArgoCDClient) DoRequestWithRetry(requestFunc func(appClient application.ApplicationServiceClient) error) error {
+func (c *argoCDClient) DoRequestWithRetry(requestFunc func(appClient application.ApplicationServiceClient) error) error {
 
 	conn, appClient, err := c.client.NewApplicationClient()
 	if err != nil {
@@ -146,7 +152,7 @@ func (c *ArgoCDClient) DoRequestWithRetry(requestFunc func(appClient application
 	return err
 }
 
-func (c *ArgoCDClient) ListApplications() (*v1alpha1.ApplicationList, error) {
+func (c *argoCDClient) ListApplications() (*v1alpha1.ApplicationList, error) {
 
 	var apps *v1alpha1.ApplicationList
 	err := c.DoRequestWithRetry(func(appClient application.ApplicationServiceClient) error {
@@ -162,7 +168,7 @@ func (c *ArgoCDClient) ListApplications() (*v1alpha1.ApplicationList, error) {
 
 }
 
-func (c *ArgoCDClient) CreateApplication(newApp *application.ApplicationCreateRequest) (*v1alpha1.Application, error) {
+func (c *argoCDClient) CreateApplication(newApp *application.ApplicationCreateRequest) (*v1alpha1.Application, error) {
 
 	if newApp == nil {
 		return nil, errors.New("application must be defined")
@@ -181,7 +187,7 @@ func (c *ArgoCDClient) CreateApplication(newApp *application.ApplicationCreateRe
 	return applicationCreated, err
 }
 
-func (c *ArgoCDClient) GetApplication(query application.ApplicationQuery) (*v1alpha1.Application, error) {
+func (c *argoCDClient) GetApplication(query application.ApplicationQuery) (*v1alpha1.Application, error) {
 
 	if isEmpty(query) {
 		return nil, errors.New("application name parameter must be defined")
